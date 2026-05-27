@@ -3,6 +3,7 @@ use parking_lot::Mutex;
 use std::fs::File;
 use std::sync::Arc;
 use std::time::Duration;
+use symphonia::core::audio::SampleBuffer;
 use symphonia::core::codecs::{DecoderOptions, CODEC_TYPE_FLAC};
 use symphonia::core::formats::FormatOptions;
 use symphonia::core::io::MediaSourceStream;
@@ -115,8 +116,8 @@ fn play_audio(
     let fmt_opts: FormatOptions = Default::default();
 
     let probed = symphonia::default::get_probe().format(&hint, mss, &fmt_opts, &meta_opts)?;
-
     let mut format = probed.format;
+
     let track = format
         .tracks()
         .iter()
@@ -172,9 +173,9 @@ fn play_wasapi_exclusive(
     state: &SharedState,
     control: &Arc<Mutex<PlayerControl>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    use windows::Win32::Foundation::CloseHandle;
     use windows::Win32::Media::Audio::*;
     use windows::Win32::System::Com::*;
-    use windows::Win32::Foundation::CloseHandle;
     use windows::Win32::System::Threading::{CreateEventW, WaitForSingleObject};
 
     unsafe {
@@ -260,7 +261,6 @@ fn play_wasapi_exclusive(
             match format.next_packet() {
                 Ok(packet) => match decoder.decode(&packet) {
                     Ok(decoded) => {
-                        use symphonia::core::audio::SampleBuffer;
                         let mut sample_buf =
                             SampleBuffer::<i16>::new(decoded.capacity() as u64, *decoded.spec());
                         sample_buf.copy_interleaved_ref(decoded);
