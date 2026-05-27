@@ -272,10 +272,12 @@ fn play_wasapi_exclusive(
                             std::cmp::min(total_frames, max_frames - samples_written as usize);
 
                         let volume = control.lock().volume;
-                        let dst = std::slice::from_raw_parts_mut(
-                            buffer_ptr as *mut i16,
-                            (frames_available as usize) * channels as usize,
-                        );
+                        let dst = unsafe {
+                            std::slice::from_raw_parts_mut(
+                                buffer_ptr as *mut i16,
+                                (frames_available as usize) * channels as usize,
+                            )
+                        };
 
                         for i in 0..frames_to_write {
                             for ch in 0..channels as usize {
@@ -308,10 +310,12 @@ fn play_wasapi_exclusive(
         }
 
         if samples_written < frames_available {
-            let dst = std::slice::from_raw_parts_mut(
-                buffer_ptr as *mut u8,
-                (frames_available as usize) * frame_size,
-            );
+            let dst = unsafe {
+                std::slice::from_raw_parts_mut(
+                    buffer_ptr as *mut u8,
+                    (frames_available as usize) * frame_size,
+                )
+            };
             let start = samples_written as usize * frame_size;
             for b in dst.iter_mut().skip(start) {
                 *b = 0;
