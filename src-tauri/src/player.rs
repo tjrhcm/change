@@ -174,7 +174,8 @@ fn play_wasapi_exclusive(
 ) -> Result<(), Box<dyn std::error::Error>> {
     use windows::Win32::Media::Audio::*;
     use windows::Win32::System::Com::*;
-    use windows::Win32::System::Threading::{CreateEventW, WaitForSingleObject, CloseHandle};
+    use windows::Win32::Foundation::CloseHandle;
+    use windows::Win32::System::Threading::{CreateEventW, WaitForSingleObject};
 
     unsafe {
         CoInitializeEx(None, COINIT_MULTITHREADED).ok()?;
