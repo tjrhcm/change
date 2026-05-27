@@ -127,13 +127,13 @@ fn play_audio(
     let dec_opts: DecoderOptions = Default::default();
     let mut decoder = symphonia::default::get_codecs().make(&track.codec_params, &dec_opts)?;
 
-    let _sample_rate = track.codec_params.sample_rate.unwrap_or(44100);
-    let _channels = track
+    let sample_rate = track.codec_params.sample_rate.unwrap_or(44100);
+    let channels = track
         .codec_params
         .channels
         .map(|c| c.count())
         .unwrap_or(2) as u32;
-    let _bits_per_sample = track.codec_params.bits_per_sample.unwrap_or(16);
+    let bits_per_sample = track.codec_params.bits_per_sample.unwrap_or(16);
 
     #[cfg(target_os = "windows")]
     {
@@ -177,7 +177,7 @@ fn play_wasapi_exclusive(
     use windows::Win32::System::Threading::{CreateEventW, WaitForSingleObject, CloseHandle};
 
     unsafe {
-        CoInitializeEx(None, COINIT_MULTITHREADED)?;
+        CoInitializeEx(None, COINIT_MULTITHREADED).ok()?;
     }
 
     let enumerator: IMMDeviceEnumerator =
@@ -191,7 +191,7 @@ fn play_wasapi_exclusive(
     let avg_bytes_per_sec = sample_rate * block_align;
 
     let wave_format = WAVEFORMATEX {
-        wFormatTag: WAVE_FORMAT_PCM,
+        wFormatTag: WAVE_FORMAT_PCM as u16,
         nChannels: channels as u16,
         nSamplesPerSec: sample_rate,
         nAvgBytesPerSec: avg_bytes_per_sec,
